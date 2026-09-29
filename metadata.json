@@ -1,0 +1,6 @@
+{
+  "name": "Translator Kit",
+  "description": "The High-Velocity Conversion & Translation Engine with production utility tools for PDFs, Images, Text, Developer Utilities, Crypto, QR Codes, Units, and Calculators.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
