@@ -4,15 +4,20 @@
     <meta charset="utf-8" />
     <title>Translator Kit</title>
     <script type="text/javascript">
-      // Single Page Apps for GitHub Pages
-      // Redirects any 404 to index.html with query parameter
-      var pathSegmentsToKeep = 0;
+      // Single Page Apps for GitHub Pages with repository subpath support
+      // pathSegmentsToKeep = 1 preserves the repository name segment (e.g. /1000-Tranlator-tool-Kit/)
+      var pathSegmentsToKeep = 1;
       var l = window.location;
+      var pathSegments = l.pathname.split('/').slice(1);
+      
+      // If hosted at root or subpath
+      var repoPrefix = pathSegmentsToKeep > 0 ? '/' + pathSegments.slice(0, pathSegmentsToKeep).join('/') : '';
+      var routePath = '/' + pathSegments.slice(pathSegmentsToKeep).join('/');
+
       l.replace(
         l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?p=/' +
-        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/') +
-        (l.search ? '&q=' + l.search.slice(1) : '') +
+        repoPrefix + '/?p=' + encodeURIComponent(routePath) +
+        (l.search ? '&q=' + encodeURIComponent(l.search.slice(1)) : '') +
         l.hash
       );
     </script>
