@@ -5,31 +5,45 @@ import { ToolCard } from './components/tk/ToolCard';
 import { ToolRunner } from './components/tk/ToolRunner';
 import { AdSlot } from './components/tk/AdSlot';
 import { AIChatbot } from './components/tk/AIChatbot';
+import { CommandPalette } from './components/tk/CommandPalette';
 import { TOOLS_REGISTRY } from './lib/tools/registry';
 import { CATEGORIES } from './lib/tools/categories';
 import { ToolDefinition, ToolCategory } from './lib/tools/types';
-import { Search, Sparkles, ShieldCheck, Clock, ArrowRight } from 'lucide-react';
+import { Search, Sparkles, ShieldCheck, Clock, ArrowRight, Star, Zap, Layers } from 'lucide-react';
 import { getTranslation } from './lib/i18n/translations';
 
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState<string>('home');
   const [selectedTool, setSelectedTool] = useState<ToolDefinition | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<ToolCategory | 'all'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<ToolCategory | 'all' | 'favorites'>('all');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [recentTools, setRecentTools] = useState<string[]>([]);
+  const [favoriteTools, setFavoriteTools] = useState<string[]>([]);
   const [currentLang, setCurrentLang] = useState<string>('en');
+  const [isCmdKOpen, setIsCmdKOpen] = useState<boolean>(false);
   const pageSize = 24;
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem('tk_recent_tools');
       if (saved) setRecentTools(JSON.parse(saved));
+      const savedFavs = localStorage.getItem('tk_fav_tools');
+      if (savedFavs) setFavoriteTools(JSON.parse(savedFavs));
       const savedLang = localStorage.getItem('tk_lang');
       if (savedLang) setCurrentLang(savedLang);
     } catch (e) {
       // ignore
     }
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCmdKOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, []);
 
   const handleLanguageChange = (lang: string) => {
@@ -41,19 +55,40 @@ export default function App() {
     }
   };
 
+  const toggleFavorite = (slug: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    let updated: string[];
+    if (favoriteTools.includes(slug)) {
+      updated = favoriteTools.filter((s) => s !== slug);
+    } else {
+      updated = [...favoriteTools, slug];
+    }
+    setFavoriteTools(updated);
+    try {
+      localStorage.setItem('tk_fav_tools', JSON.stringify(updated));
+    } catch (e) {
+      // ignore
+    }
+  };
+
   const productionTools = useMemo(() => {
     return TOOLS_REGISTRY.filter((t) => t.status === 'production');
   }, []);
 
-  // Instant auto-sync search filtering on every keystroke (1-2 letters or full query)
+  // Instant auto-sync search filtering on every keystroke
   const filteredTools = useMemo(() => {
     return productionTools.filter((t) => {
-      const matchesCategory = selectedCategory === 'all' || t.category === selectedCategory;
+      let matchesCategory = true;
+      if (selectedCategory === 'favorites') {
+        matchesCategory = favoriteTools.includes(t.slug);
+      } else if (selectedCategory !== 'all') {
+        matchesCategory = t.category === selectedCategory;
+      }
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch = !q || t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q) || t.slug.toLowerCase().includes(q) || t.category.toLowerCase().includes(q);
       return matchesCategory && matchesSearch;
     });
-  }, [productionTools, selectedCategory, searchQuery]);
+  }, [productionTools, selectedCategory, searchQuery, favoriteTools]);
 
   const paginatedTools = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
@@ -70,7 +105,7 @@ export default function App() {
       setCurrentPage(1);
       setCurrentRoute('home');
     } else if (route === 'search') {
-      window.scrollTo({ top: 400, behavior: 'smooth' });
+      setIsCmdKOpen(true);
     } else {
       setCurrentRoute(route);
       setSelectedTool(null);
@@ -123,7 +158,7 @@ export default function App() {
               Enterprise Architecture & About
             </h1>
             <p className="text-zinc-300 leading-relaxed text-base">
-              Translator Kit features 1,000 professional production tools across 50 world languages with zero latency and 100% client-side privacy.
+              Translator Kit features 1,000 professional production tools across 50 world languages with zero latency, offline PWA support, batch processing, and 100% client-side privacy.
             </p>
             <div className="glass-panel rounded-3xl p-8 space-y-6">
               <h2 className="text-xl font-bold text-white flex items-center gap-3">
@@ -157,7 +192,7 @@ export default function App() {
                   The definitive enterprise suite for PDFs, documents, images, OCR, text transformation, developer tools, cryptography, and financial calculators in 50 world languages.
                 </p>
 
-                {/* Instant Auto-Sync Search Bar with Search Button */}
+                {/* Instant Auto-Sync Search Bar with Search Button & Cmd+K trigger */}
                 <div className="max-w-3xl mx-auto relative pt-4">
                   <div className="relative flex items-center shadow-2xl shadow-pink-500/25 rounded-2xl overflow-hidden border border-white/20 bg-zinc-950/90 backdrop-blur-2xl">
                     <Search className="absolute left-5 w-5 h-5 text-pink-500" />
@@ -169,17 +204,15 @@ export default function App() {
                         setCurrentPage(1);
                       }}
                       placeholder={getTranslation(currentLang, 'searchPlaceholder')}
-                      className="w-full bg-transparent pl-14 pr-32 py-5 text-white text-base focus:outline-none placeholder-zinc-500"
+                      className="w-full bg-transparent pl-14 pr-36 py-5 text-white text-base focus:outline-none placeholder-zinc-500"
                     />
                     <div className="absolute right-2 flex items-center gap-2">
-                      {searchQuery && (
-                        <button
-                          onClick={() => setSearchQuery('')}
-                          className="text-xs text-zinc-400 hover:text-white px-2 py-1 font-medium"
-                        >
-                          Clear
-                        </button>
-                      )}
+                      <button
+                        onClick={() => setIsCmdKOpen(true)}
+                        className="hidden sm:flex items-center gap-1 px-2 py-1 bg-zinc-900 border border-white/10 rounded-lg text-[10px] text-zinc-400 font-mono"
+                      >
+                        <span>⌘K</span>
+                      </button>
                       <button
                         onClick={() => window.scrollTo({ top: 500, behavior: 'smooth' })}
                         className="btn-3d btn-3d-pink px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-md flex items-center gap-1.5"
@@ -191,7 +224,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Category Quick Pills */}
+                {/* Category Quick Pills + Favorites */}
                 <div className="flex flex-wrap items-center justify-center gap-2.5 pt-4">
                   <button
                     onClick={() => {
@@ -205,6 +238,20 @@ export default function App() {
                     }`}
                   >
                     {getTranslation(currentLang, 'allTools')} ({productionTools.length})
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedCategory('favorites');
+                      setCurrentPage(1);
+                    }}
+                    className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                      selectedCategory === 'favorites'
+                        ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/30 scale-105'
+                        : 'glass-card hover:bg-white/10 text-zinc-300 border border-white/10'
+                    }`}
+                  >
+                    <Star className="w-3.5 h-3.5 fill-current text-amber-300" />
+                    <span>Favorites ({favoriteTools.length})</span>
                   </button>
                   {CATEGORIES.map((cat) => (
                     <button
@@ -255,31 +302,48 @@ export default function App() {
               <AdSlot placement="sidebar" />
             </div>
 
-            {/* Tools Grid Section with Screenshot Style Card Numbers & Unique Borders */}
+            {/* Tools Grid Section with Screenshot Style Card Numbers & Favorites Star */}
             <section className="max-w-7xl mx-auto py-12 px-4 lg:px-8">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl font-black text-white tracking-tight">
-                  {searchQuery ? `Search Results for "${searchQuery}" (${filteredTools.length})` : selectedCategory === 'all' ? `All 1,000 Production Tools (${filteredTools.length})` : `${CATEGORIES.find((c) => c.id === selectedCategory)?.name} (${filteredTools.length})`}
+                  {searchQuery ? `Search Results for "${searchQuery}" (${filteredTools.length})` : selectedCategory === 'favorites' ? `Favorite Starred Tools (${filteredTools.length})` : selectedCategory === 'all' ? `All 1,000 Production Tools (${filteredTools.length})` : `${CATEGORIES.find((c) => c.id === selectedCategory)?.name} (${filteredTools.length})`}
                 </h2>
-                <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-                  ⚡ {getTranslation(currentLang, 'activeLanguages')}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                    ⚡ {getTranslation(currentLang, 'activeLanguages')}
+                  </span>
+                </div>
               </div>
 
               {paginatedTools.length === 0 ? (
-                <div className="text-center py-20 text-zinc-500">No tools found matching your query.</div>
+                <div className="text-center py-20 text-zinc-500">
+                  {selectedCategory === 'favorites' ? 'No favorite tools starred yet. Click the star icon on any tool card to pin it here!' : 'No tools found matching your query.'}
+                </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {paginatedTools.map((tool, idx) => {
                     const globalIdx = (currentPage - 1) * pageSize + idx;
+                    const isFav = favoriteTools.includes(tool.slug);
                     return (
-                      <ToolCard
-                        key={tool.id}
-                        tool={tool}
-                        index={globalIdx}
-                        currentLang={currentLang}
-                        onSelect={handleSelectTool}
-                      />
+                      <div key={tool.id} className="relative group">
+                        <ToolCard
+                          tool={tool}
+                          index={globalIdx}
+                          currentLang={currentLang}
+                          onSelect={handleSelectTool}
+                        />
+                        <button
+                          onClick={(e) => toggleFavorite(tool.slug, e)}
+                          className={`absolute top-4 right-4 z-20 p-2 rounded-xl backdrop-blur-md transition-all ${
+                            isFav
+                              ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/40'
+                              : 'bg-black/60 text-zinc-400 hover:text-white border border-white/10'
+                          }`}
+                          title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+                        >
+                          <Star className={`w-4 h-4 ${isFav ? 'fill-current' : ''}`} />
+                        </button>
+                      </div>
                     );
                   })}
                 </div>
@@ -316,6 +380,13 @@ export default function App() {
       <div className="max-w-7xl mx-auto px-4 w-full">
         <AdSlot placement="footer" />
       </div>
+
+      {/* Spotlight Command Palette (Cmd+K) */}
+      <CommandPalette
+        isOpen={isCmdKOpen}
+        onClose={() => setIsCmdKOpen(false)}
+        onSelectTool={handleSelectTool}
+      />
 
       {/* Advanced AI Chatbot with 3D Button */}
       <AIChatbot onSelectTool={handleSelectTool} />

@@ -1,0 +1,15 @@
+{
+  "name": "Translator Kit - Online Translator, Converter, Generator & File Tools",
+  "short_name": "TranslatorKit",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#030305",
+  "theme_color": "#ff0080",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ff0080'><path d='m5 8 6 6'/><path d='m4 14 6-6 2-3'/><path d='M2 5h12'/><path d='M7 2h1'/><path d='m22 22-5-10-5 10'/><path d='M14 18h6'/></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
