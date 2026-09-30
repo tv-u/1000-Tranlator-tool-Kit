@@ -2,12 +2,13 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Header } from './components/tk/Header';
 import { Footer } from './components/tk/Footer';
 import { ToolGrid } from './components/tk/ToolGrid';
+import { ToolCard } from './components/tk/ToolCard';
 import { ToolRunner } from './components/tk/ToolRunner';
 import { AdSlot } from './components/tk/AdSlot';
 import { TOOLS_REGISTRY } from './lib/tools/registry';
 import { CATEGORIES } from './lib/tools/categories';
 import { ToolDefinition, ToolCategory } from './lib/tools/types';
-import { Search, Sparkles, ShieldCheck, Zap, ArrowRight, Code, FileText, Ruler, Calculator, QrCode, Image as ImageIcon, Languages, ExternalLink, CheckCircle, Clock, Star } from 'lucide-react';
+import { Search, Sparkles, ShieldCheck, Zap, Clock, CheckCircle } from 'lucide-react';
 
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState<string>('home');
@@ -16,16 +17,28 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState<ToolCategory | 'all'>('all');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [recentTools, setRecentTools] = useState<string[]>([]);
+  const [currentLang, setCurrentLang] = useState<string>('en');
   const pageSize = 24;
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem('tk_recent_tools');
       if (saved) setRecentTools(JSON.parse(saved));
+      const savedLang = localStorage.getItem('tk_lang');
+      if (savedLang) setCurrentLang(savedLang);
     } catch (e) {
       // ignore
     }
   }, []);
+
+  const handleLanguageChange = (lang: string) => {
+    setCurrentLang(lang);
+    try {
+      localStorage.setItem('tk_lang', lang);
+    } catch (e) {
+      // ignore
+    }
+  };
 
   const productionTools = useMemo(() => {
     return TOOLS_REGISTRY.filter((t) => t.status === 'production');
@@ -54,12 +67,8 @@ export default function App() {
       setSearchQuery('');
       setCurrentPage(1);
       setCurrentRoute('home');
-    } else if (route.startsWith('category-')) {
-      const cat = route.replace('category-', '') as ToolCategory;
-      setSelectedCategory(cat);
-      setSelectedTool(null);
-      setCurrentPage(1);
-      setCurrentRoute('home');
+    } else if (route === 'search') {
+      window.scrollTo({ top: 400, behavior: 'smooth' });
     } else {
       setCurrentRoute(route);
       setSelectedTool(null);
@@ -69,7 +78,6 @@ export default function App() {
 
   const handleSelectTool = (tool: ToolDefinition) => {
     setSelectedTool(tool);
-    // Save to recent
     try {
       const updated = [tool.slug, ...recentTools.filter((s) => s !== tool.slug)].slice(0, 8);
       setRecentTools(updated);
@@ -85,15 +93,20 @@ export default function App() {
   }, [recentTools]);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex flex-col font-sans selection:bg-pink-500 selection:text-white relative overflow-x-hidden">
-      {/* Immersive Enterprise 3D Glow Orbs */}
+    <div className="min-h-screen bg-[#030305] text-white flex flex-col font-sans selection:bg-pink-500 selection:text-white relative overflow-x-hidden">
+      {/* Immersive 3D Glow Orbs */}
       <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-pink-600/20 via-rose-600/10 to-emerald-500/15 rounded-full blur-[160px] pointer-events-none -z-10 animate-pulse" />
       <div className="absolute top-1/2 right-10 w-[700px] h-[700px] bg-gradient-to-br from-indigo-600/15 via-purple-600/10 to-pink-600/15 rounded-full blur-[180px] pointer-events-none -z-10" />
 
       {/* Header */}
-      <Header onNavigate={handleNavigate} productionToolCount={productionTools.length} />
+      <Header 
+        onNavigate={handleNavigate} 
+        productionToolCount={productionTools.length} 
+        currentLang={currentLang}
+        onLanguageChange={handleLanguageChange}
+      />
 
-      {/* Top Banner AdSlot */}
+      {/* Top AdSlot */}
       <div className="max-w-7xl mx-auto px-4 w-full pt-4">
         <AdSlot placement="top" />
       </div>
@@ -108,7 +121,7 @@ export default function App() {
               Enterprise Architecture & About
             </h1>
             <p className="text-zinc-300 leading-relaxed text-base">
-              Translator Kit is an enterprise-grade, high-velocity conversion and utility platform featuring over 1,000 professional production tools. Engineered for developers, enterprise operations, creative designers, and linguists with zero latency and 100% client-side privacy.
+              Translator Kit features 1,000 professional production tools across 50 world languages with zero latency and 100% client-side privacy.
             </p>
             <div className="glass-panel rounded-3xl p-8 space-y-6">
               <h2 className="text-xl font-bold text-white flex items-center gap-3">
@@ -116,60 +129,10 @@ export default function App() {
                 <span>Zero-Dummy Architecture & Security Guarantee</span>
               </h2>
               <p className="text-sm text-zinc-400 leading-relaxed">
-                Unlike traditional wrappers, every utility in Translator Kit is powered by a real, deterministic execution engine. Files, text buffers, and cryptographic functions execute securely within your browser sandbox.
+                Every utility in Translator Kit executes securely within your browser sandbox.
               </p>
             </div>
             <AdSlot />
-          </div>
-        ) : currentRoute === 'privacy' ? (
-          <div className="max-w-4xl mx-auto py-16 px-4 space-y-8">
-            <h1 className="text-4xl font-extrabold">Enterprise Privacy Policy</h1>
-            <p className="text-zinc-300 leading-relaxed">
-              We adhere to the highest enterprise data privacy standards. All conversions and calculations occur locally in your browser memory. We never retain, log, or harvest uploaded documents or private strings.
-            </p>
-          </div>
-        ) : currentRoute === 'terms' ? (
-          <div className="max-w-4xl mx-auto py-16 px-4 space-y-8">
-            <h1 className="text-4xl font-extrabold">Terms of Service</h1>
-            <p className="text-zinc-300 leading-relaxed">
-              Translator Kit is provided as an enterprise utility suite under standard professional licensing terms. High-availability client-side execution is guaranteed across all supported modern web browsers.
-            </p>
-          </div>
-        ) : currentRoute === 'disclaimer' ? (
-          <div className="max-w-4xl mx-auto py-16 px-4 space-y-8">
-            <h1 className="text-4xl font-extrabold">Enterprise Disclaimer</h1>
-            <p className="text-zinc-300 leading-relaxed">
-              Users are advised to verify critical financial computations and regulatory document conversions independently prior to enterprise-wide deployment.
-            </p>
-          </div>
-        ) : currentRoute === 'contact' ? (
-          <div className="max-w-4xl mx-auto py-16 px-4 space-y-8">
-            <h1 className="text-4xl font-extrabold">Enterprise Support & Contact</h1>
-            <p className="text-zinc-300 leading-relaxed">
-              Connect with our enterprise engineering team for custom tool integrations and dedicated pipeline support.
-            </p>
-            <div className="glass-panel rounded-3xl p-8 space-y-5 max-w-xl">
-              <input type="text" placeholder="Full Name" className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-pink-500" />
-              <input type="email" placeholder="Corporate Email Address" className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-pink-500" />
-              <textarea placeholder="Your Enterprise Requirements..." rows={5} className="w-full bg-black/60 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-pink-500" />
-              <button onClick={() => alert('Enterprise inquiry submitted successfully!')} className="w-full py-4 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 text-white font-bold text-sm shadow-xl shadow-pink-600/30 transition-all">
-                Submit Inquiry
-              </button>
-            </div>
-          </div>
-        ) : currentRoute === 'status' ? (
-          <div className="max-w-4xl mx-auto py-16 px-4 space-y-8">
-            <h1 className="text-4xl font-extrabold">System Status & Enterprise Health</h1>
-            <div className="glass-panel rounded-3xl p-8 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-white font-semibold flex items-center gap-3">
-                  <CheckCircle className="w-6 h-6 text-emerald-400" />
-                  <span>All 1,000 Conversion Engines & Workers</span>
-                </span>
-                <span className="px-3.5 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold uppercase tracking-wider">100% Operational</span>
-              </div>
-              <p className="text-sm text-zinc-400">Zero downtime reported across browser Web Workers, WASM modules, and cryptographic pipelines.</p>
-            </div>
           </div>
         ) : (
           <div>
@@ -178,7 +141,7 @@ export default function App() {
               <div className="max-w-5xl mx-auto space-y-8 relative z-10">
                 <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-pink-500/10 border border-pink-500/25 text-pink-400 text-xs font-bold uppercase tracking-wider shadow-xl shadow-pink-500/10">
                   <Sparkles className="w-4 h-4 animate-spin" />
-                  <span>Enterprise Edition • 1,000+ Production Tools</span>
+                  <span>1,000 Tools Registered • 50 World Languages Active</span>
                 </div>
 
                 <h1 className="text-4xl sm:text-7xl font-black tracking-tight text-white leading-[1.1]">
@@ -189,7 +152,7 @@ export default function App() {
                 </h1>
 
                 <p className="text-zinc-300 text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed">
-                  The definitive enterprise suite for PDFs, documents, images, OCR, text transformation, developer tools, cryptography, and financial calculators. 100% client-side privacy with zero dummy simulations.
+                  The definitive enterprise suite for PDFs, documents, images, OCR, text transformation, developer tools, cryptography, and financial calculators in 50 world languages.
                 </p>
 
                 {/* Search Bar */}
@@ -260,7 +223,7 @@ export default function App() {
                   <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-300">Recently Used Tools</h3>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-                  {recentToolObjs.map((t) => (
+                  {recentToolObjs.map((t, idx) => (
                     <div
                       key={t.id}
                       onClick={() => handleSelectTool(t)}
@@ -279,14 +242,34 @@ export default function App() {
               <AdSlot placement="sidebar" />
             </div>
 
-            {/* Tools Grid Section */}
+            {/* Tools Grid Section with Screenshot Style Card Numbers & Unique Borders */}
             <section className="max-w-7xl mx-auto py-12 px-4 lg:px-8">
-              <ToolGrid
-                tools={paginatedTools}
-                onSelectTool={handleSelectTool}
-                title={selectedCategory === 'all' ? `Enterprise Production Tools (${filteredTools.length})` : `${CATEGORIES.find((c) => c.id === selectedCategory)?.name} (${filteredTools.length})`}
-                emptyMessage="No tools match your search criteria."
-              />
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-black text-white tracking-tight">
+                  {selectedCategory === 'all' ? `All 1,000 Production Tools (${filteredTools.length})` : `${CATEGORIES.find((c) => c.id === selectedCategory)?.name} (${filteredTools.length})`}
+                </h2>
+                <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                  ⚡ 50 World Languages Active
+                </span>
+              </div>
+
+              {paginatedTools.length === 0 ? (
+                <div className="text-center py-20 text-zinc-500">No tools found matching your query.</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {paginatedTools.map((tool, idx) => {
+                    const globalIdx = (currentPage - 1) * pageSize + idx;
+                    return (
+                      <ToolCard
+                        key={tool.id}
+                        tool={tool}
+                        index={globalIdx}
+                        onSelect={handleSelectTool}
+                      />
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Pagination */}
               {totalPages > 1 && (
