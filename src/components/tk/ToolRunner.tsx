@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { ToolDefinition, ToolExecutionResult } from '../../lib/tools/types';
 import { executeTool } from '../../lib/tools/registry';
 import { ArrowLeft, Play, Copy, Check, Download, RefreshCw, Shield, Zap, AlertCircle, FileText, CheckCircle2 } from 'lucide-react';
+import { getTranslation } from '../../lib/i18n/translations';
 
 interface ToolRunnerProps {
   tool: ToolDefinition;
+  currentLang: string;
   onBack: () => void;
 }
 
-export const ToolRunner: React.FC<ToolRunnerProps> = ({ tool, onBack }) => {
+export const ToolRunner: React.FC<ToolRunnerProps> = ({ tool, currentLang, onBack }) => {
   const [inputValue, setInputValue] = useState<any>(tool.input[0]?.defaultValue || '');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [options, setOptions] = useState<Record<string, any>>(() => {
@@ -85,7 +87,7 @@ export const ToolRunner: React.FC<ToolRunnerProps> = ({ tool, onBack }) => {
       <div className="glass-panel rounded-3xl p-6 sm:p-9 space-y-6 shadow-2xl border border-white/15">
         <h2 className="text-base font-extrabold text-white flex items-center gap-2 uppercase tracking-wide">
           <FileText className="w-5 h-5 text-pink-400" />
-          <span>Input Configuration</span>
+          <span>{getTranslation(currentLang, 'inputConfig')}</span>
         </h2>
 
         {/* Primary Input */}
@@ -208,12 +210,12 @@ export const ToolRunner: React.FC<ToolRunnerProps> = ({ tool, onBack }) => {
           {loading ? (
             <>
               <RefreshCw className="w-5 h-5 animate-spin" />
-              <span>Processing Enterprise Engine...</span>
+              <span>{getTranslation(currentLang, 'processing')}</span>
             </>
           ) : (
             <>
               <Play className="w-5 h-5 fill-current" />
-              <span>Execute Tool Now</span>
+              <span>{getTranslation(currentLang, 'executeNow')}</span>
             </>
           )}
         </button>
@@ -227,7 +229,7 @@ export const ToolRunner: React.FC<ToolRunnerProps> = ({ tool, onBack }) => {
               {result.success ? (
                 <>
                   <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-                  <span>Execution Result</span>
+                  <span>{getTranslation(currentLang, 'executionResult')}</span>
                 </>
               ) : (
                 <>
@@ -257,7 +259,7 @@ export const ToolRunner: React.FC<ToolRunnerProps> = ({ tool, onBack }) => {
                       className="btn-3d btn-3d-emerald inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-extrabold text-sm tracking-wider uppercase shadow-xl"
                     >
                       <Download className="w-4 h-4" />
-                      <span>Download Processed File</span>
+                      <span>{getTranslation(currentLang, 'downloadFile')}</span>
                     </a>
                   </div>
                 </div>
@@ -269,7 +271,7 @@ export const ToolRunner: React.FC<ToolRunnerProps> = ({ tool, onBack }) => {
                       className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-bold uppercase tracking-wider border border-white/20 transition-all shadow-lg"
                     >
                       {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                      <span>{copied ? 'Copied!' : 'Copy Result'}</span>
+                      <span>{copied ? getTranslation(currentLang, 'copied') : getTranslation(currentLang, 'copyResult')}</span>
                     </button>
                   </div>
                   <pre className="bg-black/90 border border-white/15 rounded-2xl p-5 text-emerald-300 font-mono text-xs sm:text-sm overflow-x-auto max-h-96 leading-relaxed shadow-inner">

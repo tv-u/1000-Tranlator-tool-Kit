@@ -1,14 +1,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Header } from './components/tk/Header';
 import { Footer } from './components/tk/Footer';
-import { ToolGrid } from './components/tk/ToolGrid';
 import { ToolCard } from './components/tk/ToolCard';
 import { ToolRunner } from './components/tk/ToolRunner';
 import { AdSlot } from './components/tk/AdSlot';
 import { TOOLS_REGISTRY } from './lib/tools/registry';
 import { CATEGORIES } from './lib/tools/categories';
 import { ToolDefinition, ToolCategory } from './lib/tools/types';
-import { Search, Sparkles, ShieldCheck, Zap, Clock, CheckCircle } from 'lucide-react';
+import { Search, Sparkles, ShieldCheck, Clock } from 'lucide-react';
+import { getTranslation } from './lib/i18n/translations';
 
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState<string>('home');
@@ -98,7 +98,7 @@ export default function App() {
       <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-pink-600/20 via-rose-600/10 to-emerald-500/15 rounded-full blur-[160px] pointer-events-none -z-10 animate-pulse" />
       <div className="absolute top-1/2 right-10 w-[700px] h-[700px] bg-gradient-to-br from-indigo-600/15 via-purple-600/10 to-pink-600/15 rounded-full blur-[180px] pointer-events-none -z-10" />
 
-      {/* Header */}
+      {/* Header with Premium Logo & Top 50 Languages */}
       <Header 
         onNavigate={handleNavigate} 
         productionToolCount={productionTools.length} 
@@ -114,7 +114,7 @@ export default function App() {
       {/* Main Content Area */}
       <main className="flex-1">
         {selectedTool ? (
-          <ToolRunner tool={selectedTool} onBack={() => setSelectedTool(null)} />
+          <ToolRunner tool={selectedTool} currentLang={currentLang} onBack={() => setSelectedTool(null)} />
         ) : currentRoute === 'about' ? (
           <div className="max-w-4xl mx-auto py-16 px-4 space-y-8 animate-fade-in">
             <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-white via-pink-200 to-pink-500 bg-clip-text text-transparent">
@@ -141,7 +141,7 @@ export default function App() {
               <div className="max-w-5xl mx-auto space-y-8 relative z-10">
                 <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-pink-500/10 border border-pink-500/25 text-pink-400 text-xs font-bold uppercase tracking-wider shadow-xl shadow-pink-500/10">
                   <Sparkles className="w-4 h-4 animate-spin" />
-                  <span>1,000 Tools Registered • 50 World Languages Active</span>
+                  <span>1,000 Tools Registered • {getTranslation(currentLang, 'activeLanguages')}</span>
                 </div>
 
                 <h1 className="text-4xl sm:text-7xl font-black tracking-tight text-white leading-[1.1]">
@@ -166,7 +166,7 @@ export default function App() {
                         setSearchQuery(e.target.value);
                         setCurrentPage(1);
                       }}
-                      placeholder="Search 1,000+ enterprise tools (e.g. PDF to Word, JSON Formatter, SHA-256, OCR...)"
+                      placeholder={getTranslation(currentLang, 'searchPlaceholder')}
                       className="w-full bg-transparent pl-14 pr-4 py-5 text-white text-base focus:outline-none placeholder-zinc-500"
                     />
                     {searchQuery && (
@@ -193,7 +193,7 @@ export default function App() {
                         : 'glass-card hover:bg-white/10 text-zinc-300 border border-white/10'
                     }`}
                   >
-                    All Tools ({productionTools.length})
+                    {getTranslation(currentLang, 'allTools')} ({productionTools.length})
                   </button>
                   {CATEGORIES.map((cat) => (
                     <button
@@ -220,10 +220,12 @@ export default function App() {
               <section className="max-w-7xl mx-auto pt-10 px-4 lg:px-8">
                 <div className="flex items-center gap-2 mb-4">
                   <Clock className="w-4 h-4 text-pink-500" />
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-300">Recently Used Tools</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-300">
+                    {getTranslation(currentLang, 'recentTools')}
+                  </h3>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-                  {recentToolObjs.map((t, idx) => (
+                  {recentToolObjs.map((t) => (
                     <div
                       key={t.id}
                       onClick={() => handleSelectTool(t)}
@@ -249,7 +251,7 @@ export default function App() {
                   {selectedCategory === 'all' ? `All 1,000 Production Tools (${filteredTools.length})` : `${CATEGORIES.find((c) => c.id === selectedCategory)?.name} (${filteredTools.length})`}
                 </h2>
                 <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-                  ⚡ 50 World Languages Active
+                  ⚡ {getTranslation(currentLang, 'activeLanguages')}
                 </span>
               </div>
 
@@ -264,6 +266,7 @@ export default function App() {
                         key={tool.id}
                         tool={tool}
                         index={globalIdx}
+                        currentLang={currentLang}
                         onSelect={handleSelectTool}
                       />
                     );

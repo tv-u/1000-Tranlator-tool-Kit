@@ -5,12 +5,13 @@ import { Wrench } from 'lucide-react';
 
 interface ToolGridProps {
   tools: ToolDefinition[];
+  currentLang: string;
   onSelectTool: (tool: ToolDefinition) => void;
   title?: string;
   emptyMessage?: string;
 }
 
-export const ToolGrid: React.FC<ToolGridProps> = ({ tools, onSelectTool, title, emptyMessage }) => {
+export const ToolGrid: React.FC<ToolGridProps> = ({ tools, currentLang, onSelectTool, title, emptyMessage }) => {
   if (tools.length === 0) {
     return (
       <div className="py-16 text-center bg-[#161616]/40 rounded-2xl border border-white/10 my-8">
@@ -34,7 +35,7 @@ export const ToolGrid: React.FC<ToolGridProps> = ({ tools, onSelectTool, title, 
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {tools.map((tool, index) => (
-          <ToolCard key={tool.id} tool={tool} index={index} onSelect={onSelectTool} />
+          <ToolCard key={tool.id} tool={tool} index={index} currentLang={currentLang} onSelect={onSelectTool} />
         ))}
       </div>
     </div>

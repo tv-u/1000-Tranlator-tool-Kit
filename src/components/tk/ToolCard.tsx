@@ -2,10 +2,12 @@ import React from 'react';
 import { ToolDefinition } from '../../lib/tools/types';
 import { CATEGORIES } from '../../lib/tools/categories';
 import { ArrowRight, Zap, Shield, Smartphone } from 'lucide-react';
+import { getTranslation } from '../../lib/i18n/translations';
 
 interface ToolCardProps {
   tool: ToolDefinition;
   index: number;
+  currentLang: string;
   onSelect: (tool: ToolDefinition) => void;
 }
 
@@ -19,7 +21,7 @@ const SCREENSHOT_STYLES = [
   { border: 'border-blue-500/80', badgeBg: 'bg-blue-500/20', badgeText: 'text-blue-300', btn: 'btn-3d-blue' },
 ];
 
-export const ToolCard: React.FC<ToolCardProps> = ({ tool, index, onSelect }) => {
+export const ToolCard: React.FC<ToolCardProps> = ({ tool, index, currentLang, onSelect }) => {
   const categoryInfo = CATEGORIES.find((c) => c.id === tool.category);
   const style = SCREENSHOT_STYLES[index % SCREENSHOT_STYLES.length];
   const toolNum = `#${String(index + 1).padStart(3, '0')}`;
@@ -60,7 +62,7 @@ export const ToolCard: React.FC<ToolCardProps> = ({ tool, index, onSelect }) => 
           /{tool.slug}
         </span>
         <button className={`btn-3d ${style.btn} px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xl`}>
-          <span>Launch Tool</span>
+          <span>{getTranslation(currentLang, 'launchButton')}</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
