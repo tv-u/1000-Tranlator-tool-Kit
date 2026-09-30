@@ -7,6 +7,7 @@ import { AdSlot } from './components/tk/AdSlot';
 import { AIChatbot } from './components/tk/AIChatbot';
 import { CommandPalette } from './components/tk/CommandPalette';
 import { ShortcutsModal } from './components/tk/ShortcutsModal';
+import { InstallPromptBanner } from './components/tk/InstallPromptBanner';
 import { TOOLS_REGISTRY } from './lib/tools/registry';
 import { CATEGORIES } from './lib/tools/categories';
 import { ToolDefinition, ToolCategory } from './lib/tools/types';
@@ -442,6 +443,9 @@ export default function App() {
 
       {/* Advanced AI Chatbot */}
       <AIChatbot onSelectTool={handleSelectTool} />
+
+      {/* PWA Home Screen Install Banner */}
+      <InstallPromptBanner />
 
       {/* Footer */}
       <Footer onNavigate={handleNavigate} />
