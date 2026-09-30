@@ -4,10 +4,11 @@ import { Footer } from './components/tk/Footer';
 import { ToolCard } from './components/tk/ToolCard';
 import { ToolRunner } from './components/tk/ToolRunner';
 import { AdSlot } from './components/tk/AdSlot';
+import { AIChatbot } from './components/tk/AIChatbot';
 import { TOOLS_REGISTRY } from './lib/tools/registry';
 import { CATEGORIES } from './lib/tools/categories';
 import { ToolDefinition, ToolCategory } from './lib/tools/types';
-import { Search, Sparkles, ShieldCheck, Clock } from 'lucide-react';
+import { Search, Sparkles, ShieldCheck, Clock, ArrowRight } from 'lucide-react';
 import { getTranslation } from './lib/i18n/translations';
 
 export default function App() {
@@ -44,11 +45,12 @@ export default function App() {
     return TOOLS_REGISTRY.filter((t) => t.status === 'production');
   }, []);
 
+  // Instant auto-sync search filtering on every keystroke (1-2 letters or full query)
   const filteredTools = useMemo(() => {
     return productionTools.filter((t) => {
       const matchesCategory = selectedCategory === 'all' || t.category === selectedCategory;
-      const q = searchQuery.toLowerCase();
-      const matchesSearch = !q || t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q) || t.slug.toLowerCase().includes(q);
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch = !q || t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q) || t.slug.toLowerCase().includes(q) || t.category.toLowerCase().includes(q);
       return matchesCategory && matchesSearch;
     });
   }, [productionTools, selectedCategory, searchQuery]);
@@ -145,9 +147,9 @@ export default function App() {
                 </div>
 
                 <h1 className="text-4xl sm:text-7xl font-black tracking-tight text-white leading-[1.1]">
-                  World-Class High-Velocity <br />
+                  Online Translator, Converter, <br />
                   <span className="bg-gradient-to-r from-pink-500 via-rose-400 to-emerald-400 bg-clip-text text-transparent">
-                    Conversion & Utility Engine
+                    Generator & File Tools
                   </span>
                 </h1>
 
@@ -155,7 +157,7 @@ export default function App() {
                   The definitive enterprise suite for PDFs, documents, images, OCR, text transformation, developer tools, cryptography, and financial calculators in 50 world languages.
                 </p>
 
-                {/* Search Bar */}
+                {/* Instant Auto-Sync Search Bar with Search Button */}
                 <div className="max-w-3xl mx-auto relative pt-4">
                   <div className="relative flex items-center shadow-2xl shadow-pink-500/25 rounded-2xl overflow-hidden border border-white/20 bg-zinc-950/90 backdrop-blur-2xl">
                     <Search className="absolute left-5 w-5 h-5 text-pink-500" />
@@ -167,16 +169,25 @@ export default function App() {
                         setCurrentPage(1);
                       }}
                       placeholder={getTranslation(currentLang, 'searchPlaceholder')}
-                      className="w-full bg-transparent pl-14 pr-4 py-5 text-white text-base focus:outline-none placeholder-zinc-500"
+                      className="w-full bg-transparent pl-14 pr-32 py-5 text-white text-base focus:outline-none placeholder-zinc-500"
                     />
-                    {searchQuery && (
+                    <div className="absolute right-2 flex items-center gap-2">
+                      {searchQuery && (
+                        <button
+                          onClick={() => setSearchQuery('')}
+                          className="text-xs text-zinc-400 hover:text-white px-2 py-1 font-medium"
+                        >
+                          Clear
+                        </button>
+                      )}
                       <button
-                        onClick={() => setSearchQuery('')}
-                        className="pr-5 text-xs text-zinc-400 hover:text-white font-medium"
+                        onClick={() => window.scrollTo({ top: 500, behavior: 'smooth' })}
+                        className="btn-3d btn-3d-pink px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-md flex items-center gap-1.5"
                       >
-                        Clear
+                        <span>Search</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </button>
-                    )}
+                    </div>
                   </div>
                 </div>
 
@@ -248,7 +259,7 @@ export default function App() {
             <section className="max-w-7xl mx-auto py-12 px-4 lg:px-8">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl font-black text-white tracking-tight">
-                  {selectedCategory === 'all' ? `All 1,000 Production Tools (${filteredTools.length})` : `${CATEGORIES.find((c) => c.id === selectedCategory)?.name} (${filteredTools.length})`}
+                  {searchQuery ? `Search Results for "${searchQuery}" (${filteredTools.length})` : selectedCategory === 'all' ? `All 1,000 Production Tools (${filteredTools.length})` : `${CATEGORIES.find((c) => c.id === selectedCategory)?.name} (${filteredTools.length})`}
                 </h2>
                 <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
                   ⚡ {getTranslation(currentLang, 'activeLanguages')}
@@ -305,6 +316,9 @@ export default function App() {
       <div className="max-w-7xl mx-auto px-4 w-full">
         <AdSlot placement="footer" />
       </div>
+
+      {/* Advanced AI Chatbot with 3D Button */}
+      <AIChatbot onSelectTool={handleSelectTool} />
 
       {/* Footer */}
       <Footer onNavigate={handleNavigate} />
