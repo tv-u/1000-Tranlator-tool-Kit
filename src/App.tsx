@@ -6,10 +6,11 @@ import { ToolRunner } from './components/tk/ToolRunner';
 import { AdSlot } from './components/tk/AdSlot';
 import { AIChatbot } from './components/tk/AIChatbot';
 import { CommandPalette } from './components/tk/CommandPalette';
+import { ShortcutsModal } from './components/tk/ShortcutsModal';
 import { TOOLS_REGISTRY } from './lib/tools/registry';
 import { CATEGORIES } from './lib/tools/categories';
 import { ToolDefinition, ToolCategory } from './lib/tools/types';
-import { Search, Sparkles, ShieldCheck, Clock, ArrowRight, Star, Zap, Layers } from 'lucide-react';
+import { Search, Sparkles, ShieldCheck, Clock, ArrowRight, Star, Zap } from 'lucide-react';
 import { getTranslation } from './lib/i18n/translations';
 
 export default function App() {
@@ -22,6 +23,8 @@ export default function App() {
   const [favoriteTools, setFavoriteTools] = useState<string[]>([]);
   const [currentLang, setCurrentLang] = useState<string>('en');
   const [isCmdKOpen, setIsCmdKOpen] = useState<boolean>(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState<boolean>(false);
+  const [totalOps, setTotalOps] = useState<number>(128);
   const pageSize = 24;
 
   useEffect(() => {
@@ -32,6 +35,8 @@ export default function App() {
       if (savedFavs) setFavoriteTools(JSON.parse(savedFavs));
       const savedLang = localStorage.getItem('tk_lang');
       if (savedLang) setCurrentLang(savedLang);
+      const savedOps = localStorage.getItem('tk_total_ops');
+      if (savedOps) setTotalOps(parseInt(savedOps, 10));
     } catch (e) {
       // ignore
     }
@@ -71,11 +76,47 @@ export default function App() {
     }
   };
 
+  const handleExportFavorites = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(favoriteTools, null, 2));
+    const dlAnchorElem = document.createElement('a');
+    dlAnchorElem.setAttribute("href", dataStr);
+    dlAnchorElem.setAttribute("download", "translator-kit-favorites.json");
+    dlAnchorElem.click();
+  };
+
+  const handleImportFavorites = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileReader = new FileReader();
+    if (e.target.files && e.target.files[0]) {
+      fileReader.readAsText(e.target.files[0], "UTF-8");
+      fileReader.onload = (event) => {
+        try {
+          const parsed = JSON.parse(event.target?.result as string);
+          if (Array.isArray(parsed)) {
+            setFavoriteTools(parsed);
+            localStorage.setItem('tk_fav_tools', JSON.stringify(parsed));
+            alert('Favorites imported successfully!');
+          }
+        } catch (error) {
+          alert('Invalid JSON backup file.');
+        }
+      };
+    }
+  };
+
+  const incrementOps = () => {
+    const next = totalOps + 1;
+    setTotalOps(next);
+    try {
+      localStorage.setItem('tk_total_ops', next.toString());
+    } catch (e) {
+      // ignore
+    }
+  };
+
   const productionTools = useMemo(() => {
     return TOOLS_REGISTRY.filter((t) => t.status === 'production');
   }, []);
 
-  // Instant auto-sync search filtering on every keystroke
   const filteredTools = useMemo(() => {
     return productionTools.filter((t) => {
       let matchesCategory = true;
@@ -115,6 +156,7 @@ export default function App() {
 
   const handleSelectTool = (tool: ToolDefinition) => {
     setSelectedTool(tool);
+    incrementOps();
     try {
       const updated = [tool.slug, ...recentTools.filter((s) => s !== tool.slug)].slice(0, 8);
       setRecentTools(updated);
@@ -135,12 +177,13 @@ export default function App() {
       <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-pink-600/20 via-rose-600/10 to-emerald-500/15 rounded-full blur-[160px] pointer-events-none -z-10 animate-pulse" />
       <div className="absolute top-1/2 right-10 w-[700px] h-[700px] bg-gradient-to-br from-indigo-600/15 via-purple-600/10 to-pink-600/15 rounded-full blur-[180px] pointer-events-none -z-10" />
 
-      {/* Header with Premium Logo & Top 50 Languages */}
+      {/* Header */}
       <Header 
         onNavigate={handleNavigate} 
         productionToolCount={productionTools.length} 
         currentLang={currentLang}
         onLanguageChange={handleLanguageChange}
+        onOpenShortcuts={() => setIsShortcutsOpen(true)}
       />
 
       {/* Top AdSlot */}
@@ -178,7 +221,7 @@ export default function App() {
               <div className="max-w-5xl mx-auto space-y-8 relative z-10">
                 <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-pink-500/10 border border-pink-500/25 text-pink-400 text-xs font-bold uppercase tracking-wider shadow-xl shadow-pink-500/10">
                   <Sparkles className="w-4 h-4 animate-spin" />
-                  <span>1,000 Tools Registered • {getTranslation(currentLang, 'activeLanguages')}</span>
+                  <span>1,000 Tools Registered • {totalOps} Operations Executed</span>
                 </div>
 
                 <h1 className="text-4xl sm:text-7xl font-black tracking-tight text-white leading-[1.1]">
@@ -192,7 +235,7 @@ export default function App() {
                   The definitive enterprise suite for PDFs, documents, images, OCR, text transformation, developer tools, cryptography, and financial calculators in 50 world languages.
                 </p>
 
-                {/* Instant Auto-Sync Search Bar with Search Button & Cmd+K trigger */}
+                {/* Search Bar */}
                 <div className="max-w-3xl mx-auto relative pt-4">
                   <div className="relative flex items-center shadow-2xl shadow-pink-500/25 rounded-2xl overflow-hidden border border-white/20 bg-zinc-950/90 backdrop-blur-2xl">
                     <Search className="absolute left-5 w-5 h-5 text-pink-500" />
@@ -302,7 +345,7 @@ export default function App() {
               <AdSlot placement="sidebar" />
             </div>
 
-            {/* Tools Grid Section with Screenshot Style Card Numbers & Favorites Star */}
+            {/* Tools Grid Section */}
             <section className="max-w-7xl mx-auto py-12 px-4 lg:px-8">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl font-black text-white tracking-tight">
@@ -388,7 +431,16 @@ export default function App() {
         onSelectTool={handleSelectTool}
       />
 
-      {/* Advanced AI Chatbot with 3D Button */}
+      {/* Shortcuts & Backup Modal */}
+      <ShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
+        onExportFavorites={handleExportFavorites}
+        onImportFavorites={handleImportFavorites}
+        totalOps={totalOps}
+      />
+
+      {/* Advanced AI Chatbot */}
       <AIChatbot onSelectTool={handleSelectTool} />
 
       {/* Footer */}

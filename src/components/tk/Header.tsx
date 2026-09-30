@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Search, Globe, Zap, Cpu } from 'lucide-react';
+import { Sparkles, Search, Globe, Zap, Cpu, Command } from 'lucide-react';
 import { TOP_50_LANGUAGES } from '../../lib/tools/languages';
 import { getTranslation } from '../../lib/i18n/translations';
 
@@ -8,9 +8,10 @@ interface HeaderProps {
   productionToolCount: number;
   currentLang: string;
   onLanguageChange: (lang: string) => void;
+  onOpenShortcuts: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onNavigate, productionToolCount, currentLang, onLanguageChange }) => {
+export const Header: React.FC<HeaderProps> = ({ onNavigate, productionToolCount, currentLang, onLanguageChange, onOpenShortcuts }) => {
   return (
     <header className="sticky top-0 z-50 backdrop-blur-2xl bg-black/90 border-b border-white/15 px-4 lg:px-8 py-3.5 transition-all shadow-2xl">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
@@ -61,6 +62,14 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, productionToolCount,
               ))}
             </select>
           </div>
+
+          <button
+            onClick={onOpenShortcuts}
+            className="p-2.5 bg-zinc-900 hover:bg-zinc-800 text-pink-400 border border-white/15 rounded-xl transition-all shadow-inner"
+            title="Keyboard Shortcuts & Backup"
+          >
+            <Command className="w-4 h-4" />
+          </button>
 
           <button
             onClick={() => onNavigate('search')}

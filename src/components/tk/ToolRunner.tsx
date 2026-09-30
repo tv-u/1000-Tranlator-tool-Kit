@@ -48,6 +48,18 @@ export const ToolRunner: React.FC<ToolRunnerProps> = ({ tool, currentLang, onBac
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleDownloadFile = (content: string, filename: string, mimeType = 'text/plain') => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-8 py-8 px-4 animate-fade-in">
       {/* Back button & Title */}
@@ -221,7 +233,7 @@ export const ToolRunner: React.FC<ToolRunnerProps> = ({ tool, currentLang, onBac
         </button>
       </div>
 
-      {/* Result Panel */}
+      {/* Result Panel with Copy & Download */}
       {result && (
         <div className="glass-panel rounded-3xl p-6 sm:p-9 space-y-6 shadow-2xl border border-white/15 animate-fade-in">
           <div className="flex items-center justify-between border-b border-white/15 pb-4">
@@ -264,14 +276,21 @@ export const ToolRunner: React.FC<ToolRunnerProps> = ({ tool, currentLang, onBac
                   </div>
                 </div>
               ) : (
-                <div className="relative">
-                  <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-end gap-3">
                     <button
                       onClick={() => handleCopy(typeof result.output === 'string' ? result.output : JSON.stringify(result.output, null, 2))}
-                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-bold uppercase tracking-wider border border-white/20 transition-all shadow-lg"
+                      className="btn-3d btn-3d-purple flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg"
                     >
-                      {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                      {copied ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
                       <span>{copied ? getTranslation(currentLang, 'copied') : getTranslation(currentLang, 'copyResult')}</span>
+                    </button>
+                    <button
+                      onClick={() => handleDownloadFile(typeof result.output === 'string' ? result.output : JSON.stringify(result.output, null, 2), `result-${tool.slug}.txt`, 'text/plain')}
+                      className="btn-3d btn-3d-emerald flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>{getTranslation(currentLang, 'downloadFile')}</span>
                     </button>
                   </div>
                   <pre className="bg-black/90 border border-white/15 rounded-2xl p-5 text-emerald-300 font-mono text-xs sm:text-sm overflow-x-auto max-h-96 leading-relaxed shadow-inner">
