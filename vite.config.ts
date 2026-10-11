@@ -6,7 +6,7 @@ import {defineConfig} from 'vite';
 export default defineConfig(() => {
   return {
     // Explicit GitHub Pages repository base path for https://tv-u.github.io/1000-Tranlator-tool-Kit/
-    base: '/1000-Tranlator-tool-Kit/',
+    base: process.env.CF_PAGES ? '/' : '/1000-Tranlator-tool-Kit/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
