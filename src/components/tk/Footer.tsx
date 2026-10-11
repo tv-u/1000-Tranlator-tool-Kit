@@ -44,11 +44,11 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         <div>
           <h4 className="font-semibold text-white mb-4 text-xs uppercase tracking-wider">Engine & Legal</h4>
           <ul className="space-y-2.5 text-xs">
-            <li><button onClick={() => onNavigate('about')} className="hover:text-pink-400 transition-colors">About Engine</button></li>
-            <li><button onClick={() => onNavigate('privacy')} className="hover:text-pink-400 transition-colors">Privacy Policy</button></li>
-            <li><button onClick={() => onNavigate('terms')} className="hover:text-pink-400 transition-colors">Terms of Service</button></li>
-            <li><button onClick={() => onNavigate('contact')} className="hover:text-pink-400 transition-colors">Contact & Feedback</button></li>
-            <li><button onClick={() => onNavigate('status')} className="hover:text-pink-400 transition-colors">System Status</button></li>
+            <li><a href="./about.html" className="hover:text-pink-400 transition-colors">About Engine</a></li>
+            <li><a href="./privacy.html" className="hover:text-pink-400 transition-colors">Privacy Policy</a></li>
+            <li><a href="./terms.html" className="hover:text-pink-400 transition-colors">Terms of Service</a></li>
+            <li><a href="./contact.html" className="hover:text-pink-400 transition-colors">Contact & Feedback</a></li>
+            <li><a href="./status.html" className="hover:text-pink-400 transition-colors">System Status</a></li>
           </ul>
         </div>
 
